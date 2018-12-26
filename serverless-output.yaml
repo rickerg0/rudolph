@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'sam-app
+
+  Sample SAM Template for sam-app
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+Outputs:
+  BackgroundFunction:
+    Description: Background Function ARN
+    Value:
+      Fn::GetAtt:
+      - BackgroundFunction
+      - Arn
+  ProcessOnDemandFunction:
+    Description: ProcessOnDemand Function  ARN
+    Value:
+      Fn::GetAtt:
+      - ProcessOnDemandFunction
+      - Arn
+Resources:
+  BackgroundFunction:
+    Properties:
+      CodeUri: s3://rudolph-package/backgroundpackage.zip
+      Handler: background.processData
+      Policies: AWSLambdaBasicExecutionRole
+      Runtime: python3.6
+    Type: AWS::Serverless::Function
+  ProcessOnDemandFunction:
+    Properties:
+      CodeUri: s3://rudolph-package/OnDemandpackage.zip
+      Events:
+        S3CreateObject:
+          Properties:
+            Bucket:
+              Ref: SrcBucket
+            Events: s3:ObjectCreated:*
+          Type: S3
+      Handler: processContent.OnDemand
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - S3CrudPolicy:
+          BucketName: my-raindeer-dropzone
+      Runtime: python3.6
+    Type: AWS::Serverless::Function
+  SrcBucket:
+    Properties:
+      BucketName: my-raindeer-dropzone
+    Type: AWS::S3::Bucket
+Transform: AWS::Serverless-2016-10-31

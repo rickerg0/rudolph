@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+    sam-app
+
+    Sample SAM Template for sam-app
+    
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+    Function:
+        Timeout: 3
+
+Resources:
+    SrcBucket:
+          Type: AWS::S3::Bucket
+          Properties:
+            BucketName: my-reindeer-dropzone
+            
+    DynamoRekognitionTable:
+      Type: AWS::DynamoDB::Table # if you want to define a more complex table, use AWS::DynamoDB::Table
+      Properties: 
+        TableName: rekognitionTable
+        AttributeDefinitions:
+          - AttributeName: primaryValue
+            AttributeType: S
+          - AttributeName: datetime
+            AttributeType: S
+        KeySchema:
+          - AttributeName: primaryValue
+            KeyType: HASH
+          - AttributeName: datetime
+            KeyType: RANGE
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5           
+         
+    BackgroundFunction:
+        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+        Properties:
+            CodeUri: s3://my-rudolph-package/backgroundpackage.zip  
+            Handler: background.processData
+            Runtime: python3.6
+            Policies: AWSLambdaBasicExecutionRole    
+    
+ 
+    ProcessOnDemandFunction:
+        Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+        Properties:
+            CodeUri: s3://my-rudolph-package/ondemandpackage.zip  
+            Handler:  ondemandfunction.OnDemand
+            Runtime: python3.6
+            Policies: 
+              - AWSLambdaBasicExecutionRole
+              - S3CrudPolicy:
+                 BucketName: my-reindeer-dropzone
+            
+            Events:
+              S3CreateObject:
+                Type: S3
+                Properties:
+                 Bucket: !Ref SrcBucket
+                 Events: s3:ObjectCreated:*
+   
+Outputs: 
+
+    BackgroundFunction:
+      Description: "Background Function ARN"
+      Value: !GetAtt BackgroundFunction.Arn
+
+    ProcessOnDemandFunction:
+      Description: "ProcessOnDemand Function  ARN"
+      Value: !GetAtt ProcessOnDemandFunction.Arn
+      
+      
+      
