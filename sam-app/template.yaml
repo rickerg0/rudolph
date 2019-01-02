@@ -51,9 +51,12 @@ Resources:
             Runtime: python3.6
             Policies: 
               - AWSLambdaBasicExecutionRole
+              - AmazonDynamoDBFullAccess
+              - AmazonS3FullAccess
+              - AmazonESFullAccess 
+              - AmazonRekognitionFullAccess
               - S3CrudPolicy:
-                 BucketName: my-reindeer-dropzone
-            
+                 BucketName: my-reindeer-dropzone          
             Events:
               S3CreateObject:
                 Type: S3

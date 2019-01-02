@@ -58,6 +58,10 @@ Resources:
       Handler: ondemandfunction.OnDemand
       Policies:
       - AWSLambdaBasicExecutionRole
+      - AmazonDynamoDBFullAccess
+      - AmazonS3FullAccess
+      - AmazonESFullAccess
+      - AmazonRekognitionFullAccess
       - S3CrudPolicy:
           BucketName: my-reindeer-dropzone
       Runtime: python3.6
